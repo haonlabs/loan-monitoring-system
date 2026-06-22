@@ -124,6 +124,17 @@ export async function createLoan(borrowerId: string, form: FormData): Promise<Ac
   } catch (e) { return { ok: false, error: e instanceof Error ? e.message : "Gagal menambah pinjaman." }; }
 }
 
+export async function updateLoanDescription(borrowerId: string, loanId: string, form: FormData): Promise<ActionResult> {
+  await requireAdmin();
+  try {
+    const loanRef = adminDb.collection("borrowers").doc(borrowerId).collection("loans").doc(loanId);
+    if (!(await loanRef.get()).exists) return { ok: false, error: "Pinjaman tidak ditemukan." };
+    await loanRef.update({ description: String(form.get("description") || "").trim() });
+    revalidatePath(`/admin/borrowers/${borrowerId}`); revalidatePath(`/p/${(await adminDb.collection("borrowers").doc(borrowerId).get()).data()?.shareToken || ""}`);
+    return { ok: true };
+  } catch (e) { return { ok: false, error: e instanceof Error ? e.message : "Gagal mengubah keterangan pinjaman." }; }
+}
+
 export async function recordPayment(borrowerId: string, loanId: string, form: FormData): Promise<ActionResult> {
   const admin = await requireAdmin();
   const amount = parseRupiah(form.get("amount"));
