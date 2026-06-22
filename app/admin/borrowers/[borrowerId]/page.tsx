@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, KeyRound, Link2, Phone, StickyNote, UserRound } from "lucide-react";
+import { ArrowLeft, ChevronDown, KeyRound, Link2, Phone, StickyNote, UserRound } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getBorrower } from "@/lib/data";
 import { calculateLoanStatus, formatRupiah, generateShareUrl } from "@/lib/utils";
@@ -20,13 +20,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
-export default async function BorrowerDetailPage({ params }: { params: { borrowerId: string } }) {
+export default async function BorrowerDetailPage({ params, searchParams }: { params: { borrowerId: string }; searchParams: { loanPage?: string } }) {
   const borrower = await getBorrower(params.borrowerId);
   if (!borrower) notFound();
   const verifyCode = borrower.verifyCode || "";
   const totalAmount = borrower.loans.reduce((sum, loan) => sum + loan.totalAmount, 0);
   const remainingAmount = borrower.loans.reduce((sum, loan) => sum + loan.remainingAmount, 0);
   const paidAmount = totalAmount - remainingAmount;
+  const perPage = 5;
+  const totalLoanPages = Math.max(1, Math.ceil(borrower.loans.length / perPage));
+  const currentLoanPage = Math.min(totalLoanPages, Math.max(1, Number(searchParams.loanPage) || 1));
+  const paginatedLoans = borrower.loans.slice((currentLoanPage - 1) * perPage, currentLoanPage * perPage);
+  const loanPageUrl = (page: number) => page > 1 ? `/admin/borrowers/${borrower.id}?loanPage=${page}` : `/admin/borrowers/${borrower.id}`;
 
   return <div className="space-y-8">
     <Button asChild variant="ghost" className="-ml-3"><Link href="/admin/dashboard"><ArrowLeft className="h-4 w-4" />Kembali ke dashboard</Link></Button>
@@ -36,12 +41,16 @@ export default async function BorrowerDetailPage({ params }: { params: { borrowe
 
     <Card><CardHeader className="sm:flex-row sm:items-center sm:justify-between"><div><CardTitle>Tambah pinjaman</CardTitle><CardDescription className="mt-1">Peminjam dapat memiliki pinjaman baru meski yang sebelumnya belum lunas.</CardDescription></div></CardHeader><CardContent><AddLoanForm borrowerId={borrower.id} /></CardContent></Card>
 
-    <section className="space-y-4"><div><h2 className="text-xl font-bold">Daftar pinjaman</h2><p className="text-sm text-muted-foreground">Setiap pinjaman memiliki pembayaran dan status terpisah.</p></div>{borrower.loans.length === 0 ? <Card><CardContent className="p-10 text-center text-muted-foreground">Belum ada pinjaman.</CardContent></Card> : borrower.loans.map((loan, index) => {
-      const status = calculateLoanStatus(loan);
-      const payments = borrower.payments.filter(payment => payment.loanId === loan.id);
-      const proofs=borrower.proofs.filter(proof=>proof.loanId===loan.id);
-      return <Card key={loan.id} className="overflow-hidden"><CardHeader className="border-b bg-muted/40"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><div className="flex flex-wrap items-center gap-3"><CardTitle className="text-xl">Pinjaman #{borrower.loans.length - index}</CardTitle><LoanStatus status={status} /></div><CardDescription className="mt-2">{loan.description || "Tanpa keterangan"}</CardDescription></div><LoanActions borrowerId={borrower.id} loanId={loan.id} isPaid={status === "paid"} /></div></CardHeader><CardContent className="space-y-8 p-5 sm:p-7"><LoanDetail loan={loan} /><div className="rounded-xl border bg-muted/20 p-5"><h3 className="mb-1 font-bold">Catat pembayaran</h3><p className="mb-5 text-sm text-muted-foreground">Pembayaran masuk khusus ke Pinjaman #{borrower.loans.length - index}.</p><PaymentForm borrowerId={borrower.id} loanId={loan.id} remainingAmount={loan.remainingAmount} /></div><div className="border-t pt-7"><h3 className="font-bold">Riwayat pembayaran</h3><PaymentHistory payments={payments} actions={payment => <DeletePaymentButton borrowerId={borrower.id} paymentId={payment.id} />} /></div><div className="space-y-4 border-t pt-7"><div><h3 className="font-bold">Bukti transfer</h3><p className="mt-1 text-sm text-muted-foreground">Bukti dari kedua pihak dapat dilihat bersama.</p></div><ProofUploadForm borrowerId={borrower.id} loanId={loan.id} role="lender"/><ProofGallery proofs={proofs} borrowerId={borrower.id}/></div></CardContent></Card>;
-    })}</section>
+    <section className="space-y-4"><div><h2 className="text-xl font-bold">Daftar pinjaman</h2><p className="text-sm text-muted-foreground">Setiap pinjaman memiliki pembayaran dan status terpisah.</p></div>{borrower.loans.length === 0 ? <Card><CardContent className="p-10 text-center text-muted-foreground">Belum ada pinjaman.</CardContent></Card> : <>
+      {paginatedLoans.map((loan, index) => {
+        const status = calculateLoanStatus(loan);
+        const payments = borrower.payments.filter(payment => payment.loanId === loan.id);
+        const proofs=borrower.proofs.filter(proof=>proof.loanId===loan.id);
+        const loanNumber = borrower.loans.length - ((currentLoanPage - 1) * perPage + index);
+        return <details key={loan.id} className="group overflow-hidden rounded-xl border bg-card"><summary className="flex cursor-pointer list-none items-center justify-between gap-4 bg-muted/40 p-5 marker:hidden"><div className="min-w-0"><div className="flex flex-wrap items-center gap-3"><h3 className="text-xl font-bold">Pinjaman #{loanNumber}</h3><LoanStatus status={status} /></div><p className="mt-2 truncate text-sm text-muted-foreground">{loan.description || "Tanpa keterangan"}</p><p className="mt-2 text-sm font-semibold text-indigo-700">Sisa {formatRupiah(loan.remainingAmount)}</p></div><ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground transition group-open:rotate-180"/></summary><div className="space-y-8 p-5 sm:p-7"><div className="flex justify-end"><LoanActions borrowerId={borrower.id} loanId={loan.id} isPaid={status === "paid"} /></div><LoanDetail loan={loan} /><div className="rounded-xl border bg-muted/20 p-5"><h3 className="mb-1 font-bold">Catat pembayaran</h3><p className="mb-5 text-sm text-muted-foreground">Pembayaran masuk khusus ke Pinjaman #{loanNumber}.</p><PaymentForm borrowerId={borrower.id} loanId={loan.id} remainingAmount={loan.remainingAmount} /></div><div className="border-t pt-7"><h3 className="font-bold">Riwayat pembayaran</h3><PaymentHistory payments={payments} actions={payment => <DeletePaymentButton borrowerId={borrower.id} paymentId={payment.id} />} /></div><div className="space-y-4 border-t pt-7"><div><h3 className="font-bold">Bukti transfer</h3><p className="mt-1 text-sm text-muted-foreground">Bukti dari kedua pihak dapat dilihat bersama.</p></div><ProofUploadForm borrowerId={borrower.id} loanId={loan.id} role="lender"/><ProofGallery proofs={proofs} borrowerId={borrower.id}/></div></div></details>;
+      })}
+      {totalLoanPages > 1 && <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-muted-foreground">Halaman {currentLoanPage} dari {totalLoanPages}</p><div className="flex gap-2"><Button asChild variant="outline" size="sm" className={currentLoanPage===1?"pointer-events-none opacity-50":""}><Link href={loanPageUrl(currentLoanPage-1)}>Sebelumnya</Link></Button><Button asChild variant="outline" size="sm" className={currentLoanPage===totalLoanPages?"pointer-events-none opacity-50":""}><Link href={loanPageUrl(currentLoanPage+1)}>Berikutnya</Link></Button></div></div>}
+    </>}</section>
 
     <Card><CardHeader><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-accent-foreground"><Link2 className="h-4 w-4"/></span><div><CardTitle>Bagikan status pinjaman</CardTitle><CardDescription className="mt-1">Satu link menampilkan seluruh pinjaman peminjam ini.</CardDescription></div></div></CardHeader><CardContent className="space-y-4"><code className="block overflow-x-auto rounded-xl border bg-muted/60 p-4 text-sm">{generateShareUrl(borrower.shareToken)}</code><ShareButton borrowerName={borrower.name} shareToken={borrower.shareToken} verifyCode={verifyCode} phoneNumber={borrower.phone} /></CardContent></Card>
   </div>;
