@@ -8,6 +8,7 @@ import { ShareButton } from "@/components/admin/ShareButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { PaginationLinks } from "@/components/ui/pagination-links";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const dynamic = "force-dynamic";
@@ -51,7 +52,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { stat
         const latest = borrower.loans[0];
         return <TableRow key={borrower.id}><TableCell className="pl-6"><p className="font-semibold">{borrower.name}</p>{borrower.tags.length>0&&<div className="mt-1.5 flex flex-wrap gap-1">{borrower.tags.map(tag=><span key={tag} className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-medium text-violet-700">{tag}</span>)}</div>}</TableCell><TableCell><p className="font-medium">{borrower.loans.length} pinjaman</p>{latest && <p className="mt-0.5 text-xs text-muted-foreground">Terbaru · {formatLoanDuration(latest.startDate)}</p>}</TableCell><TableCell>{formatRupiah(total)}</TableCell><TableCell className="font-bold">{formatRupiah(remaining)}</TableCell><TableCell><Badge variant={status === "paid" ? "paid" : status === "overdue" ? "overdue" : "default"}>{statusLabel(status)}</Badge></TableCell><TableCell className="pr-6"><div className="flex justify-end gap-2"><Button asChild size="sm" variant="outline"><Link href={`/admin/borrowers/${borrower.id}`}>Lihat detail</Link></Button><ShareButton compact borrowerName={borrower.name} shareToken={borrower.shareToken} verifyCode={borrower.verifyCode} phoneNumber={borrower.phone} /></div></TableCell></TableRow>;
       })}</TableBody></Table></CardContent></Card>
-      {totalPages > 1 && <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-muted-foreground">Halaman {currentPage} dari {totalPages}</p><div className="flex gap-2"><Button asChild variant="outline" size="sm" className={currentPage===1?"pointer-events-none opacity-50":""}><Link href={dashboardUrl(filter,selectedTag,currentPage-1)}>Sebelumnya</Link></Button><Button asChild variant="outline" size="sm" className={currentPage===totalPages?"pointer-events-none opacity-50":""}><Link href={dashboardUrl(filter,selectedTag,currentPage+1)}>Berikutnya</Link></Button></div></div>}
+      <PaginationLinks currentPage={currentPage} totalPages={totalPages} getHref={page=>dashboardUrl(filter,selectedTag,page)} />
     </>}
   </div>;
 }
