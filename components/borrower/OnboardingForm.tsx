@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import { checkOnboardingName, getBorrowerNameSuggestions, verifyOnboardingAccess } from "@/app/actions";
@@ -18,6 +18,10 @@ export function OnboardingForm() {
   const [error, setError] = useState("");
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchSequence = useRef(0);
+
+  useEffect(() => () => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+  }, []);
 
   function changeName(value: string) {
     setName(value); setError("");
@@ -60,13 +64,13 @@ export function OnboardingForm() {
   }
 
   if (step === "name") return <form onSubmit={submitName} className="space-y-5">
-    <div className="space-y-2"><Label htmlFor="borrower-name">Nama lengkap</Label><div className="relative"><Input id="borrower-name" value={name} onChange={event => changeName(event.target.value)} autoComplete="off" aria-autocomplete="list" aria-controls="borrower-suggestions" aria-expanded={suggestions.length > 0} required placeholder="Ketik minimal 3 karakter" />{searching&&<Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-muted-foreground"/>}{suggestions.length>0&&<div id="borrower-suggestions" role="listbox" aria-label="Saran nama peminjam" className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border bg-white py-1 shadow-lg">{suggestions.map(suggestion=><button key={suggestion} type="button" role="option" aria-selected={name===suggestion} onClick={()=>selectSuggestion(suggestion)} className="block w-full px-3 py-2.5 text-left text-sm hover:bg-blue-50 focus:bg-blue-50 focus:outline-none">{suggestion}</button>)}</div>}</div><p className="text-xs text-muted-foreground">Saran muncul otomatis setelah Anda berhenti mengetik.</p></div>
+    <div className="space-y-2"><Label htmlFor="borrower-name">Nama lengkap</Label><div className="relative"><Input id="borrower-name" value={name} onChange={event => changeName(event.target.value)} autoComplete="off" aria-autocomplete="list" aria-controls="borrower-suggestions" aria-expanded={suggestions.length > 0} required placeholder="Ketik minimal 3 karakter" />{searching&&<Loader2 className="absolute right-3 top-3.5 h-4 w-4 animate-spin text-muted-foreground"/>}{suggestions.length>0&&<div id="borrower-suggestions" role="listbox" aria-label="Saran nama peminjam" className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border bg-popover py-1.5 shadow-xl">{suggestions.map(suggestion=><button key={suggestion} type="button" role="option" aria-selected={name===suggestion} onClick={()=>selectSuggestion(suggestion)} className="block w-full px-3.5 py-3 text-left text-sm transition hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:outline-none">{suggestion}</button>)}</div>}</div><p className="text-xs text-muted-foreground">Saran muncul otomatis setelah Anda berhenti mengetik.</p></div>
     {error && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
     <Button className="w-full" disabled={loading}>{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}{loading ? "Mencari..." : "Lanjutkan"}</Button>
   </form>;
 
   return <form onSubmit={submitCode} className="space-y-5">
-    <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-800"><ShieldCheck className="mr-2 inline h-4 w-4" />Masukkan kode 6 karakter huruf dan angka yang diberikan pemberi pinjaman.</div>
+    <div className="rounded-xl bg-accent p-4 text-sm leading-6 text-accent-foreground"><ShieldCheck className="mr-2 inline h-4 w-4" />Masukkan kode 6 karakter yang diberikan pemberi pinjaman.</div>
     <div className="space-y-2"><Label htmlFor="verify-code">Kode verifikasi</Label><Input id="verify-code" name="verifyCode" type="password" inputMode="text" pattern="[A-Za-z0-9]{6}" maxLength={6} autoCapitalize="characters" onInput={event=>{event.currentTarget.value=event.currentTarget.value.toUpperCase().replace(/[^A-Z0-9]/g,"")}} autoComplete="one-time-code" required autoFocus className="text-center font-mono text-2xl uppercase tracking-[.35em]" placeholder="••••••" /></div>
     {error && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
     <div className="flex gap-2"><Button type="button" variant="outline" className="flex-1" onClick={() => { setStep("name"); setError(""); }}><ArrowLeft className="h-4 w-4" />Ganti nama</Button><Button className="flex-1" disabled={loading}>{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}{loading ? "Memeriksa..." : "Lihat status"}</Button></div>

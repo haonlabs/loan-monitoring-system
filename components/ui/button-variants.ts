@@ -1,0 +1,3 @@
+import { cva } from "class-variance-authority";
+
+export const buttonVariants = cva("inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50", { variants: { variant: { default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90", outline: "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground", destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90" } }, defaultVariants: { variant: "default" } });

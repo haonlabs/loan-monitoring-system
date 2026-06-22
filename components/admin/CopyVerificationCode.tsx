@@ -4,6 +4,7 @@ import { Check, Copy, Loader2, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { regenerateVerifyCode } from "@/app/actions";
 import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 export function CopyVerificationCode({ code, borrowerId }: { code: string; borrowerId:string }) {
   const [copied, setCopied] = useState(false);
@@ -13,9 +14,9 @@ export function CopyVerificationCode({ code, borrowerId }: { code: string; borro
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
-  async function regenerate(){if(!window.confirm("Buat kode verifikasi baru? Kode lama tidak dapat digunakan lagi."))return;setLoading(true);const result=await regenerateVerifyCode(borrowerId);setLoading(false);if(!result.ok)return window.alert(result.error);router.refresh()}
+  async function regenerate(){setLoading(true);const result=await regenerateVerifyCode(borrowerId);setLoading(false);if(!result.ok)return window.alert(result.error);router.refresh()}
   return <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" size="sm" onClick={copy} disabled={!code}>
     {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
     {copied ? "Tersalin!" : "Salin Kode"}
-  </Button><Button type="button" variant="outline" size="sm" onClick={regenerate} disabled={loading}>{loading?<Loader2 className="h-4 w-4 animate-spin"/>:<RefreshCw className="h-4 w-4"/>}{loading?"Membuat...":"Buat Kode Baru"}</Button></div>;
+  </Button><AlertDialog><AlertDialogTrigger asChild><Button type="button" variant="outline" size="sm" disabled={loading}>{loading?<Loader2 className="h-4 w-4 animate-spin"/>:<RefreshCw className="h-4 w-4"/>}{loading?"Membuat...":"Buat kode baru"}</Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Buat kode verifikasi baru?</AlertDialogTitle><AlertDialogDescription>Kode lama langsung tidak dapat digunakan. Berikan kode baru kepada peminjam secara manual.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Batal</AlertDialogCancel><AlertDialogAction onClick={regenerate}>Buat kode baru</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></div>;
 }

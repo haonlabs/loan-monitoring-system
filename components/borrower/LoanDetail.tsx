@@ -1,6 +1,5 @@
 import type { Loan } from "@/types";
 import { calculatePaidPercentage, daysUntilDue, formatDate, formatLoanDuration, formatRupiah } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
 export function LoanDetail({ loan, publicView = false }: { loan: Loan; publicView?: boolean }) {
@@ -10,15 +9,15 @@ export function LoanDetail({ loan, publicView = false }: { loan: Loan; publicVie
 
   return <div className="space-y-5">
     <div className={`grid gap-4 ${publicView ? "sm:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-4"}`}>
-      <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">{publicView ? "Total pinjaman" : "Pokok pinjaman"}</p><p className="mt-2 text-xl font-bold">{formatRupiah(publicView ? loan.totalAmount : loan.principal)}</p></CardContent></Card>
-      {!publicView && loan.interest > 0 && <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Total dengan bunga ({loan.interest}%)</p><p className="mt-2 text-xl font-bold">{formatRupiah(loan.totalAmount)}</p></CardContent></Card>}
-      <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Sudah dibayar</p><p className="mt-2 text-xl font-bold text-emerald-600">{formatRupiah(paid)}</p></CardContent></Card>
-      <Card className="border-blue-200 bg-blue-50/50"><CardContent className="p-5"><p className="text-sm text-muted-foreground">Sisa hutang</p><p className="mt-2 text-2xl font-bold text-blue-700">{formatRupiah(loan.remainingAmount)}</p></CardContent></Card>
+      <div className="rounded-xl border bg-background p-5"><p className="text-sm font-medium text-muted-foreground">{publicView ? "Total pinjaman" : "Pokok pinjaman"}</p><p className="mt-2 text-xl font-bold">{formatRupiah(publicView ? loan.totalAmount : loan.principal)}</p></div>
+      {!publicView && loan.interest > 0 && <div className="rounded-xl border bg-background p-5"><p className="text-sm font-medium text-muted-foreground">Total dengan bunga ({loan.interest}%)</p><p className="mt-2 text-xl font-bold">{formatRupiah(loan.totalAmount)}</p></div>}
+      <div className="rounded-xl border bg-background p-5"><p className="text-sm font-medium text-muted-foreground">Sudah dibayar</p><p className="mt-2 text-xl font-bold text-emerald-600">{formatRupiah(paid)}</p></div>
+      <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-5"><p className="text-sm font-medium text-muted-foreground">Sisa pinjaman</p><p className="mt-2 text-2xl font-bold text-indigo-700">{formatRupiah(loan.remainingAmount)}</p></div>
     </div>
-    <div className="rounded-xl border bg-white p-5">
-      <div className="mb-2 flex justify-between text-sm"><span>Progres pelunasan</span><b>{percentage}%</b></div>
+    <div className="rounded-xl border bg-background p-5">
+      <div className="mb-3 flex justify-between text-sm"><span className="font-medium">Progres pelunasan</span><b className="text-primary">{percentage}%</b></div>
       <Progress value={percentage} />
-      <div className="mt-5 flex flex-col justify-between gap-2 text-sm text-muted-foreground sm:flex-row">
+      <div className="mt-5 grid gap-3 text-sm text-muted-foreground sm:grid-cols-2 xl:grid-cols-4">
         <span>Mulai: <b className="text-foreground">{formatDate(loan.startDate)}</b></span>
         <span>Sudah berjalan: <b className="text-foreground">{formatLoanDuration(loan.startDate)}</b></span>
         <span>Jatuh tempo: <b className="text-foreground">{loan.dueDate ? formatDate(loan.dueDate) : "Tidak ditentukan"}</b></span>
