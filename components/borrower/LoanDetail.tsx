@@ -11,7 +11,7 @@ export function LoanDetail({ loan, publicView = false }: { loan: Loan; publicVie
   return <div className="space-y-5">
     <div className={`grid gap-4 ${publicView ? "sm:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-4"}`}>
       <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">{publicView ? "Total pinjaman" : "Pokok pinjaman"}</p><p className="mt-2 text-xl font-bold">{formatRupiah(publicView ? loan.totalAmount : loan.principal)}</p></CardContent></Card>
-      {!publicView && <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Total dengan bunga</p><p className="mt-2 text-xl font-bold">{formatRupiah(loan.totalAmount)}</p></CardContent></Card>}
+      {!publicView && loan.interest > 0 && <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Total dengan bunga ({loan.interest}%)</p><p className="mt-2 text-xl font-bold">{formatRupiah(loan.totalAmount)}</p></CardContent></Card>}
       <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Sudah dibayar</p><p className="mt-2 text-xl font-bold text-emerald-600">{formatRupiah(paid)}</p></CardContent></Card>
       <Card className="border-blue-200 bg-blue-50/50"><CardContent className="p-5"><p className="text-sm text-muted-foreground">Sisa hutang</p><p className="mt-2 text-2xl font-bold text-blue-700">{formatRupiah(loan.remainingAmount)}</p></CardContent></Card>
     </div>

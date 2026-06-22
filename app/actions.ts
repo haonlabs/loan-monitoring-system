@@ -1,7 +1,7 @@
 "use server";
 
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
-import { nanoid } from "nanoid";
+import { customAlphabet, nanoid } from "nanoid";
 import { del, put } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 import { adminDb } from "@/lib/firebaseAdmin";
@@ -9,6 +9,7 @@ import { requireAdmin } from "@/lib/auth";
 import { normalizeBorrowerName, parseRupiah } from "@/lib/utils";
 
 export type ActionResult = { ok: true; id?: string } | { ok: false; error: string };
+const generateVerifyCode = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
 
 function tagsFrom(form: FormData): string[] {
   try {
@@ -70,11 +71,10 @@ export async function createBorrower(form: FormData): Promise<ActionResult> {
   const name = String(form.get("name") || "").trim();
   const principal = parseRupiah(form.get("principal"));
   const interest = Number(form.get("interest") || 0);
-  const verifyCode = String(form.get("verifyCode") || "").trim();
+  const verifyCode = generateVerifyCode();
   const startDate = String(form.get("startDate") || "");
   const dueDate = String(form.get("dueDate") || "");
   if (!name || principal <= 0 || !startDate) return { ok: false, error: "Lengkapi semua data wajib." };
-  if (!/^\d{4}$/.test(verifyCode)) return { ok: false, error: "Kode verifikasi harus terdiri dari 4 digit angka." };
   if (dueDate && new Date(dueDate) < new Date(startDate)) return { ok: false, error: "Tanggal jatuh tempo harus setelah tanggal mulai." };
   try {
     const borrowerRef = adminDb.collection("borrowers").doc();
@@ -210,21 +210,24 @@ export async function deleteBorrower(borrowerId: string): Promise<ActionResult> 
 export async function updateBorrower(borrowerId: string, form: FormData): Promise<ActionResult> {
   await requireAdmin();
   const name = String(form.get("name") || "").trim();
-  const verifyCode = String(form.get("verifyCode") || "").trim();
   if (!name) return { ok: false, error: "Nama peminjam wajib diisi." };
-  if (!/^\d{4}$/.test(verifyCode)) return { ok: false, error: "Kode verifikasi harus terdiri dari 4 digit angka." };
   try {
     await adminDb.collection("borrowers").doc(borrowerId).update({
       name,
       nameNormalized: normalizeBorrowerName(name),
       phone: String(form.get("phone") || "").trim(),
       notes: String(form.get("notes") || "").trim(),
-      verifyCode,
       tags: tagsFrom(form)
     });
     revalidatePath(`/admin/borrowers/${borrowerId}`); revalidatePath("/admin/dashboard");
     return { ok: true };
   } catch (e) { return { ok: false, error: e instanceof Error ? e.message : "Gagal mengubah data peminjam." }; }
+}
+
+export async function regenerateVerifyCode(borrowerId:string):Promise<ActionResult>{
+  await requireAdmin();
+  try{await adminDb.collection("borrowers").doc(borrowerId).update({verifyCode:generateVerifyCode()});revalidatePath(`/admin/borrowers/${borrowerId}`);return{ok:true};}
+  catch(error){return{ok:false,error:error instanceof Error?error.message:"Gagal membuat kode baru."};}
 }
 
 const onboardingError = "Nama atau kode verifikasi tidak cocok.";
@@ -254,10 +257,11 @@ export async function checkOnboardingName(name: string): Promise<{ ok: boolean; 
 
 export async function verifyOnboardingAccess(name: string, code: string): Promise<{ ok: boolean; shareToken?: string; error?: string }> {
   const normalized = normalizeBorrowerName(name);
-  if (!normalized || !/^\d{4}$/.test(code)) return { ok: false, error: onboardingError };
+  const normalizedCode=code.trim().toUpperCase();
+  if (!normalized || !/^[A-Z0-9]{6}$/.test(normalizedCode)) return { ok: false, error: onboardingError };
   try {
     const snap = await adminDb.collection("borrowers").where("nameNormalized", "==", normalized).get();
-    const borrower = snap.docs.find(doc => doc.data().verifyCode === code);
+    const borrower = snap.docs.find(doc => String(doc.data().verifyCode||"").toUpperCase() === normalizedCode);
     if (!borrower) return { ok: false, error: onboardingError };
     return { ok: true, shareToken: String(borrower.data().shareToken) };
   } catch { return { ok: false, error: onboardingError }; }

@@ -66,8 +66,8 @@ export function OnboardingForm() {
   </form>;
 
   return <form onSubmit={submitCode} className="space-y-5">
-    <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-800"><ShieldCheck className="mr-2 inline h-4 w-4" />Masukkan kode 4 digit yang diberikan pemberi pinjaman.</div>
-    <div className="space-y-2"><Label htmlFor="verify-code">Kode verifikasi</Label><Input id="verify-code" name="verifyCode" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} autoComplete="one-time-code" required autoFocus className="text-center font-mono text-2xl tracking-[.5em]" placeholder="••••" /></div>
+    <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-800"><ShieldCheck className="mr-2 inline h-4 w-4" />Masukkan kode 6 karakter huruf dan angka yang diberikan pemberi pinjaman.</div>
+    <div className="space-y-2"><Label htmlFor="verify-code">Kode verifikasi</Label><Input id="verify-code" name="verifyCode" type="password" inputMode="text" pattern="[A-Za-z0-9]{6}" maxLength={6} autoCapitalize="characters" onInput={event=>{event.currentTarget.value=event.currentTarget.value.toUpperCase().replace(/[^A-Z0-9]/g,"")}} autoComplete="one-time-code" required autoFocus className="text-center font-mono text-2xl uppercase tracking-[.35em]" placeholder="••••••" /></div>
     {error && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
     <div className="flex gap-2"><Button type="button" variant="outline" className="flex-1" onClick={() => { setStep("name"); setError(""); }}><ArrowLeft className="h-4 w-4" />Ganti nama</Button><Button className="flex-1" disabled={loading}>{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}{loading ? "Memeriksa..." : "Lihat status"}</Button></div>
   </form>;
