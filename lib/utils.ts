@@ -45,8 +45,9 @@ export function generateShareUrl(shareToken: string): string {
   return `${base.replace(/\/$/, "")}/p/${shareToken}`;
 }
 
-export function generateWAMessage(borrowerName: string, shareToken: string): string {
-  return `Halo ${borrowerName}, berikut link untuk melihat status pinjamanmu:\n${generateShareUrl(shareToken)}\n\nKamu bisa melihat detail pinjaman dan riwayat pembayaran di sana.`;
+export function generateWAMessage(borrowerName: string, shareToken: string, verifyCode?: string): string {
+  const codeText = verifyCode ? `\nKode akses: ${verifyCode}` : "";
+  return `Halo ${borrowerName}, berikut akses untuk melihat status pinjamanmu di tagihanku:\n\nLink status:\n${generateShareUrl(shareToken)}${codeText}\n\nPanduan akses:\n1. Klik link di atas.\n2. Jika diminta kode akses, masukkan kode akses yang tertera di pesan ini.\n3. Lihat rincian pinjaman, sisa tagihan, riwayat pembayaran, dan bukti transfer.\n\nJika ada pertanyaan, hubungi pemberi pinjaman.`;
 }
 
 export function parseRupiah(value: FormDataEntryValue | null): number {

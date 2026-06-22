@@ -1,4 +1,4 @@
-# Loan Monitoring System
+# tagihanku
 
 Aplikasi Next.js 14 untuk mencatat dan memantau pinjaman pribadi. Admin mengelola peminjam, pembayaran, dan membagikan halaman read-only melalui link unik.
 
