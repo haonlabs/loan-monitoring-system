@@ -11,8 +11,8 @@ export function LoanDetail({ loan, publicView = false }: { loan: Loan; publicVie
     <div className={`grid gap-4 ${publicView ? "sm:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-4"}`}>
       <div className="rounded-xl border bg-background p-5"><p className="text-sm font-medium text-muted-foreground">{publicView ? "Total pinjaman" : "Pokok pinjaman"}</p><p className="mt-2 text-xl font-bold">{formatRupiah(publicView ? loan.totalAmount : loan.principal)}</p></div>
       {!publicView && loan.interest > 0 && <div className="rounded-xl border bg-background p-5"><p className="text-sm font-medium text-muted-foreground">Total dengan bunga ({loan.interest}%)</p><p className="mt-2 text-xl font-bold">{formatRupiah(loan.totalAmount)}</p></div>}
-      <div className="rounded-xl border bg-background p-5"><p className="text-sm font-medium text-muted-foreground">Sudah dibayar</p><p className="mt-2 text-xl font-bold text-emerald-600">{formatRupiah(paid)}</p></div>
-      <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-5"><p className="text-sm font-medium text-muted-foreground">Sisa pinjaman</p><p className="mt-2 text-2xl font-bold text-indigo-700">{formatRupiah(loan.remainingAmount)}</p></div>
+      <div className="rounded-xl border bg-background p-5"><p className="text-sm font-medium text-muted-foreground">Sudah dibayar</p><p className="mt-2 text-xl font-bold text-emerald-400">{formatRupiah(paid)}</p></div>
+      <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/10 p-5"><p className="text-sm font-medium text-muted-foreground">Sisa pinjaman</p><p className="mt-2 text-2xl font-bold text-indigo-300">{formatRupiah(loan.remainingAmount)}</p></div>
     </div>
     <div className="rounded-xl border bg-background p-5">
       <div className="mb-3 flex justify-between text-sm"><span className="font-medium">Progres pelunasan</span><b className="text-primary">{percentage}%</b></div>
@@ -21,7 +21,7 @@ export function LoanDetail({ loan, publicView = false }: { loan: Loan; publicVie
         <span>Mulai: <b className="text-foreground">{formatDate(loan.startDate)}</b></span>
         <span>Sudah berjalan: <b className="text-foreground">{formatLoanDuration(loan.startDate)}</b></span>
         <span>Jatuh tempo: <b className="text-foreground">{loan.dueDate ? formatDate(loan.dueDate) : "Tidak ditentukan"}</b></span>
-        {days !== null && <span className={days < 0 ? "font-semibold text-red-600" : ""}>{days < 0 ? `${Math.abs(days)} hari lewat` : days === 0 ? "Jatuh tempo hari ini" : `${days} hari lagi`}</span>}
+        {days !== null && <span className={days < 0 ? "font-semibold text-red-400" : ""}>{days < 0 ? `${Math.abs(days)} hari lewat` : days === 0 ? "Jatuh tempo hari ini" : `${days} hari lagi`}</span>}
       </div>
     </div>
   </div>;

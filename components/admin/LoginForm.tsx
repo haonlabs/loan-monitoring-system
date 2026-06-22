@@ -24,7 +24,7 @@ export function LoginForm() {
   return <form onSubmit={submit} className="space-y-5">
     <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" name="email" type="email" autoComplete="email" required placeholder="pemberipinjaman@email.com" /></div>
     <div className="space-y-2"><Label htmlFor="password">Password</Label><Input id="password" name="password" type="password" autoComplete="current-password" required /></div>
-    {error && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+    {error && <p role="alert" className="rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</p>}
     <Button className="w-full" disabled={loading}>{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}{loading ? "Memproses..." : "Masuk"}</Button>
   </form>;
 }
